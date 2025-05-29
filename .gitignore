@@ -1,0 +1,11 @@
+# Go
+/scanner-cli/keysweep-scanner
+/action/keysweep-scanner
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+*.DS_Store
+Thumbs.db

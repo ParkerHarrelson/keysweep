@@ -1,0 +1,12 @@
+name: Keysweep Scan Diff
+description: Block a PR when secrets are present
+runs:
+  using: docker
+  image: Dockerfile
+inputs:
+  KEYSWEEP_URL:
+    required: false
+    description: control‑plane endpoint
+branding:
+  icon: shield
+  color: red

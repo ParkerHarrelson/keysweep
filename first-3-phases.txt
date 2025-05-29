@@ -1,0 +1,60 @@
+Phase 1 – Scanner CLI & GitHub Action wrapper
+  Language(s) : Go 1.22 for the CLI, Bash + YAML for the Action wrapper
+  Goals
+
+Collect the staged / PR diff and run gitleaks in stdin mode.
+
+Parse gitleaks JSON into KeySweep’s SecretFinding schema.
+
+Sign the payload with an Ed25519 repo‑specific keypair.
+
+POST the signed JSON to the control‑plane endpoint; exit ≠ 0 when findings exist (so the PR check fails).
+
+Package the CLI and gitleaks in a tiny multi‑stage Docker image and publish a reusable keysweep/scan-diff GitHub Action.
+
+Success metric: A dummy secret (AKIA...) in any PR blocks merge and a signed findings JSON appears in the control‑plane log.
+
+Phase 2 – Spring Boot Control‑Plane Skeleton
+  Language(s) : Kotlin 1.9 / Spring Boot 3.3, SQL (Flyway, Postgres)
+  Goals
+
+Expose POST /findings that validates Ed25519 signatures and persists findings to Postgres (H2 for dev).
+
+Implement a minimal policy engine (block vs allow) driven by YAML config—later we swap to OPA.
+
+Emit an event to a simple Slack notifier service (HTTP webhook) when severity = HIGH.
+
+Return a signed JSON receipt so the scanner can print a trace‑ID.
+
+Success metric: Signed findings hit /findings, are stored, and a Slack message posts to a test channel within one second.
+
+Phase 3 – Auto‑Rotation & Remediation PR Bot
+  Language(s) : Kotlin for rotator workers, Java 22 for the JGit PR bot
+  Goals
+
+Rotator SDK – define Rotator interface and ship two concrete workers:
+
+AwsSecretsManagerRotator (calls RotateSecret)
+
+GitHubPatRotator (creates & revokes PAT via REST API)
+
+PR Bot service – given a finding, open a branch that:
+
+deletes or redacts the secret line;
+
+commits a replacement env‑var reference;
+
+opens a PR back to the source branch.
+
+Link rotator + PR bot: on successful rotation, include the new secret reference and rotation metadata in the PR description.
+
+Write an audit row (finding_id, rotated_at, new_secret_hash) in Postgres.
+
+Success metric: Dropping a dummy AWS key into a feature branch triggers (a) an AWS SM rotation on the stub secret, and (b) a cleanup PR that merges cleanly with CI green.
+
+Why this order?
+Phase 1 gets merge‑blocking value immediately.
+Phase 2 gives you a central place for policy, audit, and notifications—usable even if rotation is off.
+Phase 3 adds the “wow” factor (auto‑fix) and proves the end‑to‑end story you can show to AppSec and future paying customers.
+
+Once these three chunks are stable you can iterate on extras—history deep‑scrub, additional rotators, Helm charts—without touching the critical path.

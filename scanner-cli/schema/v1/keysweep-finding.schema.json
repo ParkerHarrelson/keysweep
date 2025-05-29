@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KeySweepFinding",
+  "type": "object",
+  "required": ["rule_id", "file", "line", "secret"],
+  "properties": {
+    "rule_id": { "type": "string" },
+    "file":    { "type": "string" },
+    "line":    { "type": "integer", "minimum": 1 },
+    "secret":  { "type": "string" },
+    "commit":  { "type": "string" }
+  },
+  "additionalProperties": false
+}

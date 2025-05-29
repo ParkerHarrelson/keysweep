@@ -1,0 +1,14 @@
+name: Keysweep Secret Scan
+on:
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions: { contents: read, pull-requests: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./action          
+        with:
+          KEYSWEEP_URL: ""     

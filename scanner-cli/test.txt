@@ -1,0 +1,7 @@
+diff --git a/config.example b/config.example
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/config.example
+@@ -0,0 +1 @@
++aws_access_key = "AKIAHAGJ67MZEP7678PP"
