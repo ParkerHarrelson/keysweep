@@ -1,29 +1,35 @@
-####################  BUILD STAGE  ####################
-FROM golang:1.23-alpine AS build
-WORKDIR /src
+# ── builder ─────────────────────────────────────────────────────────
+FROM golang:1.24-alpine AS builder
+WORKDIR /app
 
-# Static builds for *everything* we compile
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-
+# copy your Go module files from the root context
 COPY go.mod go.sum ./
 RUN go mod download
 
-# gitleaks – static, no libc needed
-RUN go install github.com/zricethezav/gitleaks/v8@latest
+# copy and build your CLI
+COPY scanner-cli/ .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -ldflags="-s -w" -o /keysweep-scanner .
 
-# keysweep-scanner
-COPY scanner-cli/ ./scanner-cli
-RUN go build -o /bin/keysweep-scanner ./scanner-cli
+# ── gitleaks image ─────────────────────────────────────────────────
+FROM ghcr.io/gitleaks/gitleaks:v8.23.0 AS gitleaks
 
+# ── final image ────────────────────────────────────────────────────
+FROM alpine:latest
+RUN apk add --no-cache ca-certificates git curl
 
-###################  RUNTIME STAGE  ###################
-FROM alpine:3.19
-RUN apk add --no-cache git
+# make /workspace the place entrypoint will run from
+WORKDIR /workspace
 
-# Make sure the rules directory exists
-RUN mkdir -p /workspace
+# bring in your baked-in rules file
+COPY gitleaks.toml /workspace/gitleaks.toml
 
-COPY --from=build /go/bin/gitleaks       /bin/
-COPY --from=build /bin/keysweep-scanner  /bin/
-COPY scanner-cli/gitleaks.toml           /workspace/gitleaks.toml  
-COPY action/entrypoint.sh                /entrypoint.sh
+# pull in the scanner + gitleaks binaries
+COPY --from=builder /keysweep-scanner /bin/keysweep-scanner
+COPY --from=gitleaks /usr/bin/gitleaks /bin/gitleaks
+
+# bring in your wrapper
+COPY action/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

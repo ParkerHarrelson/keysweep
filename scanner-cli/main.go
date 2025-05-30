@@ -40,7 +40,7 @@ type Finding struct {
 
 var debug = os.Getenv("KEYSWEEP_DEBUG") != ""
 
-func dprintf(format string, a ...interface{}) {
+func dprintf(format string, a ...any) {
 	if debug {
 		log.Printf(format, a...)
 	}

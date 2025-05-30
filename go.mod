@@ -1,6 +1,6 @@
 module github.com/ParkerHarrelson/keysweep
 
-go 1.23
+go 1.24
 
 require github.com/xeipuuv/gojsonschema v1.2.0
 

@@ -1,12 +1,49 @@
-name: Keysweep Scan Diff
-description: Block a PR when secrets are present
+name: 'Keysweep Scan Diff'
+description: 'Block a PR when secrets are present'
+
 runs:
   using: docker
   image: Dockerfile
+
 inputs:
   KEYSWEEP_URL:
+    description: 'Control-plane endpoint (optional)'
     required: false
-    description: control‑plane endpoint
+
+  # Signing flags
+  signing_enabled:
+    description: 'Enable repo-specific Ed25519 signing'
+    required: false
+    default: 'false'
+  signing_key_path:
+    description: 'Path to private key file (if signing_enabled=true)'
+    required: false
+  signing_key_secret:
+    description: 'GitHub secret name holding Base64 private key'
+    required: false
+
+  # Custom gitleaks rules
+  custom_rules_path:
+    description: 'Relative repo path to extra TOML rules'
+    required: false
+  custom_rules_url:
+    description: 'HTTP(S) URL to pull extra TOML rules from'
+    required: false
+  use_default_rules:
+    description: 'Set to "false" to ignore baked-in gitleaks.toml'
+    required: false
+    default: 'true'
+
+  # Diff inputs
+  base_ref:
+    description: 'Target branch name (usually from ${{ github.event.pull_request.base.ref }})'
+    required: false
+    default: ${{ github.event.pull_request.base.ref }}
+  head_sha:
+    description: 'PR head SHA (defaults to ${{ github.sha }})'
+    required: false
+    default: ${{ github.sha }}
+
 branding:
-  icon: shield
-  color: red
+  icon: 'shield'
+  color: 'red'

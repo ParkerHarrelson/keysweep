@@ -14,6 +14,8 @@ Package the CLI and gitleaks in a tiny multi‑stage Docker image and publish a 
 
 Success metric: A dummy secret (AKIA...) in any PR blocks merge and a signed findings JSON appears in the control‑plane log.
 
+Should be able to provide some sort of yaml configuration file or ability to configure the action the PR uses in such a way that you can add custom rules to the toml rules that are being used. This will give users the ability to scan for keys that are not defaulted in gitleaks. This should be simple to add for a user, even if the toml file rules are complex in nature. we should be able to parse their custom rules and add them in to the scan so that each repo that is being scanned can add these custom rules. This should also not break the file syntactically in any way and there should be no issues that arise from duplicate rules appearing. 
+
 Phase 2 – Spring Boot Control‑Plane Skeleton
   Language(s) : Kotlin 1.9 / Spring Boot 3.3, SQL (Flyway, Postgres)
   Goals
